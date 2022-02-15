@@ -3,6 +3,8 @@ const { graphqlHTTP } = require('express-graphql');
 const { buildSchema } = require('graphql');
 const mongoose = require('mongoose');
 
+const Event = require('./models/event');
+
 const app = express();
 
 const events = [];
@@ -40,25 +42,39 @@ app.use('/graphql', graphqlHTTP({
         }
     `),
     rootValue: {
-        events: () => {
-            return events;
+        events: async () => {
+            
+            try {
+                const events = await Event.find();
+                return events.map(event => {
+                    return {...event._doc, _id: event.id };
+                });
+            } catch (error) {
+                throw err;
+            }
         },
-        createEvent: (args) => {
-            const event = {
-                _id: Math.random().toString(),
+        createEvent: async (args) => {
+            const event = new Event({
                 title: args.eventInput.title,
                 description: args.eventInput.description,
                 price: +args.eventInput.price,
-                date: args.eventInput.date,
+                date: new Date(args.eventInput.date),
+            })
+            try {
+                const result = await event.save()
+                console.log(result);
+                return {...result._doc, _id: event.id}
+
+            } catch (error) {
+                console.log(error);
+                throw error;
             }
-            events.push(event);
-            return event;
         }
     },
     graphiql: true
 }))
 
-mongoose.connect(`mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.guiog.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`)
+mongoose.connect(`mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0.guiog.mongodb.net/${process.env.MONGO_DB}?retryWrites=true&w=majority`)
 .then(() => {
     app.listen(3000);
 })
