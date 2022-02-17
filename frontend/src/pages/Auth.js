@@ -1,4 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useContext } from 'react'
+
+import AuthContext from '../context/auth-context'
 
 import './Auth.css';
 
@@ -6,7 +8,8 @@ const AuthPage = (props) => {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLogin, setIsLogin] = useState(true);
+  const [isLogin, setIsLogin] = useState(true);  
+  const { login } = useContext(AuthContext)
 
   const handleEmailChange = (evt) => {
     setEmail(evt.target.value);
@@ -62,6 +65,9 @@ const AuthPage = (props) => {
       });
       if (response.status !== 200 && response.status !== 201) {
         throw new Error('Failed!');
+      }
+      if (response.data.login.token) {
+        login(response.data.login.token, response.data.login.userId, response.data.login.tokenExpiration)
       }
       return response.json()
     } catch (error) {
