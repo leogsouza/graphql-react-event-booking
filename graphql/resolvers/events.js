@@ -12,20 +12,23 @@ module.exports = {
       throw err;
     }
   },
-  createEvent: async (args) => {
+  createEvent: async (args, req) => {
+    if (!req.isAuth) {
+      throw new Error('User not authenticated')
+    }
     const event = new Event({
       title: args.eventInput.title,
       description: args.eventInput.description,
       price: +args.eventInput.price,
       date: new Date(args.eventInput.date),
-      creator: '620bfe8dbee2bbe4f0923869'
+      creator: req.userId
     })
 
     try {
       const result = await event.save()
 
       const createdEvent = transformEvent(result);
-      const userFound = await User.findById('620bfe8dbee2bbe4f0923869');
+      const userFound = await User.findById(req.userId);
       if (!userFound) {
         throw new Error('User not found.')
       }
