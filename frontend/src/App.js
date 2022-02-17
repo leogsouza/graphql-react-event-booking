@@ -37,10 +37,14 @@ const App = () => {
           <MainNavigation />
           <main className='main-content'>
             <Routes>
-              <Route path='/' exact element={<Navigate to='/auth' />} />
-              <Route path='/auth' element={<AuthPage />} />
+              {!token && <Route path='/' exact element={<Navigate to='/auth' />} />}
+              {token && <Route path='/' exact element={<Navigate to='/events' />} />}
+              {token && <Route path='/auth' exact element={<Navigate to='/events' />} />}
+              {!token && <Route path='/auth' element={<AuthPage />} />}
               <Route path='/events' element={<EventsPage />} />
-              <Route path='/bookings' element={<BookingsPage />} />
+              {token && (
+                <Route path='/bookings' element={<BookingsPage />} />
+              )}
             </Routes>
           </main>
         </AuthContext.Provider>
